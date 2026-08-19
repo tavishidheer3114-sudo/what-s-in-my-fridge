@@ -810,9 +810,13 @@
 
 <script>
   // ============================================================
-  // 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
+  // PASTE YOUR OPENAI API KEY BELOW. Get one at platform.openai.com/api-keys
+  // (this requires billing set up — OpenAI has no free tier)
+  // WARNING: anyone who views this page's source can see this key.
+  // Only use this approach for a private link you control, not a
+  // widely-shared public site.
   // ============================================================
-  const GROQ_API_KEY = "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";
+  const OPENAI_API_KEY = "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";
 
   const SYSTEM_PROMPT = `You are a practical home-cooking recipe engine. Given a list of fridge/pantry ingredients a user has on hand, suggest recipes they could realistically cook.
 
@@ -1079,11 +1083,11 @@ Respond with ONLY valid JSON, no markdown fences, no preamble, matching exactly 
       updateFindBtn();
       return;
     }
-    if(!GROQ_API_KEY || GROQ_API_KEY === "PASTE_YOUR_GROQ_API_KEY_HERE"){
+    if(!OPENAI_API_KEY || OPENAI_API_KEY === "PASTE_YOUR_OPENAI_API_KEY_HERE"){
       resultsWrap.style.display = 'block';
       resultsTitle.textContent = '';
       resultsSub.textContent = '';
-      resultsBody.innerHTML = '<div class="status-box error">No Groq API key found. Open this file, find GROQ_API_KEY near the top of the &lt;script&gt; tag, and paste your key from console.groq.com/keys in place of the placeholder text.</div>';
+      resultsBody.innerHTML = '<div class="status-box error">No OpenAI API key found. Open this file, find OPENAI_API_KEY near the top of the &lt;script&gt; tag, and paste your key from platform.openai.com/api-keys in place of the placeholder text.</div>';
       resultsWrap.scrollIntoView({ behavior:'smooth', block:'start' });
       return;
     }
@@ -1109,14 +1113,14 @@ Respond with ONLY valid JSON, no markdown fences, no preamble, matching exactly 
     const userPrompt = `Ingredients I have: ${ingredients.join(', ')}${buildConstraintsText()}`;
 
     try{
-      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": "Bearer " + GROQ_API_KEY
+          "Authorization": "Bearer " + OPENAI_API_KEY
         },
         body: JSON.stringify({
-          model: "openai/gpt-oss-120b",
+          model: "gpt-4o-mini",
           temperature: 0.7,
           max_completion_tokens: 3200,
           response_format: { type: "json_object" },
