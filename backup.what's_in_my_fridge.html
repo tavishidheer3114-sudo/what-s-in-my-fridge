@@ -1,0 +1,1376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>What's in My Fridge?</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Kalam:wght@400;700&family=Work+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --fridge-white:#F3F4F1;
+    --fridge-panel:#E9EBE6;
+    --steel:#C7CCC6;
+    --steel-dark:#9BA39B;
+    --charcoal:#2B2B26;
+    --ink-soft:#5B5F58;
+    --yolk:#F2B23D;
+    --yolk-dark:#D89620;
+    --tomato:#E1543F;
+    --herb:#4C7A5A;
+    --herb-dark:#375C42;
+    --blueberry:#4A5C8C;
+    --paper:#FBFAF6;
+    --shadow:0 2px 6px rgba(43,43,38,0.12);
+    --shadow-lift:0 10px 24px rgba(43,43,38,0.18);
+  }
+
+  *{box-sizing:border-box;}
+  body{margin:0;}
+
+  .fridge-app{
+    font-family:'Work Sans', sans-serif;
+    background:
+      repeating-linear-gradient(90deg, transparent, transparent 119px, rgba(43,43,38,0.035) 119px, rgba(43,43,38,0.035) 121px),
+      var(--fridge-white);
+    color:var(--charcoal);
+    min-height:100vh;
+    padding:0 0 80px 0;
+  }
+
+  /* ---------- HERO / DOOR HEADER ---------- */
+  .door-header{
+    position:relative;
+    padding:56px 24px 40px;
+    text-align:center;
+    border-bottom:3px solid var(--steel);
+    background:linear-gradient(180deg, rgba(255,255,255,0.5), transparent);
+  }
+  .handle{
+    position:absolute;
+    right:28px;
+    top:50%;
+    transform:translateY(-50%);
+    width:14px;
+    height:120px;
+    border-radius:8px;
+    background:linear-gradient(90deg, var(--steel-dark), #DEE2DB 40%, var(--steel-dark));
+    box-shadow:var(--shadow);
+    display:none;
+  }
+  @media(min-width:720px){ .handle{display:block;} }
+
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--herb-dark);
+    background:rgba(76,122,90,0.1);
+    display:inline-block;
+    padding:4px 12px;
+    border-radius:20px;
+    margin-bottom:18px;
+  }
+
+  h1{
+    font-family:'Kalam', cursive;
+    font-weight:700;
+    font-size:clamp(34px, 6vw, 58px);
+    margin:0 0 12px;
+    line-height:1.05;
+    color:var(--charcoal);
+  }
+  h1 span{
+    color:var(--tomato);
+    position:relative;
+  }
+
+  .subtitle{
+    font-size:16px;
+    color:var(--ink-soft);
+    max-width:460px;
+    margin:0 auto 36px;
+    line-height:1.5;
+  }
+
+  /* ---------- INPUT / MAGNET BAR ---------- */
+  .magnet-bar{
+    max-width:640px;
+    margin:0 auto;
+    background:var(--paper);
+    border-radius:16px;
+    box-shadow:var(--shadow-lift);
+    padding:20px;
+    border:1px solid rgba(43,43,38,0.06);
+  }
+
+  .input-row{
+    display:flex;
+    gap:10px;
+  }
+
+  #ingredient-input{
+    flex:1;
+    font-family:'Work Sans', sans-serif;
+    font-size:16px;
+    padding:13px 16px;
+    border-radius:10px;
+    border:2px solid var(--steel);
+    background:var(--fridge-white);
+    color:var(--charcoal);
+    outline:none;
+    transition:border-color 0.15s ease;
+  }
+  #ingredient-input:focus{
+    border-color:var(--herb);
+  }
+  #ingredient-input::placeholder{ color:var(--steel-dark); }
+
+  .add-btn{
+    font-family:'Work Sans', sans-serif;
+    font-weight:600;
+    font-size:15px;
+    padding:0 20px;
+    border-radius:10px;
+    border:none;
+    background:var(--charcoal);
+    color:var(--fridge-white);
+    cursor:pointer;
+    transition:transform 0.12s ease, background 0.15s ease;
+  }
+  .add-btn:hover{ background:#3d3d35; }
+  .add-btn:active{ transform:scale(0.96); }
+
+  .hint{
+    font-size:12.5px;
+    color:var(--steel-dark);
+    margin:10px 2px 0;
+    font-family:'JetBrains Mono', monospace;
+  }
+
+  /* ---------- MAGNET CHIPS ---------- */
+  .magnets{
+    position:relative;
+    margin-top:18px;
+    min-height:64px;
+    border-radius:10px;
+    transition:min-height 0.2s ease;
+  }
+  .magnets.has-items{
+    min-height:150px;
+    background:
+      radial-gradient(circle, rgba(43,43,38,0.05) 1px, transparent 1.4px);
+    background-size:14px 14px;
+    border:1.5px dashed rgba(43,43,38,0.08);
+  }
+
+  .magnet{
+    font-family:'Kalam', cursive;
+    font-weight:700;
+    font-size:15px;
+    padding:7px 14px 7px 14px;
+    border-radius:8px;
+    color:white;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    box-shadow:0 3px 0 rgba(0,0,0,0.15), var(--shadow);
+    cursor:grab;
+    user-select:none;
+    touch-action:none;
+    position:absolute;
+    animation:pop 0.25s ease;
+  }
+  .magnet:active{ cursor:grabbing; }
+  .magnet.dragging{ box-shadow:0 8px 16px rgba(0,0,0,0.28); scale:1.06; }
+  @keyframes pop{
+    from{ transform:scale(0.7); opacity:0; }
+    to{ transform:scale(1); opacity:1; }
+  }
+  .magnet button{
+    background:rgba(255,255,255,0.3);
+    border:none;
+    color:white;
+    width:18px;
+    height:18px;
+    border-radius:50%;
+    font-size:12px;
+    line-height:1;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+  }
+  .magnet button:hover{ background:rgba(255,255,255,0.5); }
+
+  .magnet.c0{ background:var(--tomato); }
+  .magnet.c1{ background:var(--herb); }
+  .magnet.c2{ background:var(--yolk-dark); }
+  .magnet.c3{ background:var(--blueberry); }
+
+  .empty-hint{
+    font-size:13px;
+    color:var(--steel-dark);
+    font-style:italic;
+    padding:4px 2px;
+  }
+
+  /* ---------- FIND BUTTON ---------- */
+  .find-row{
+    max-width:640px;
+    margin:20px auto 0;
+    text-align:center;
+  }
+  .find-btn{
+    font-family:'Kalam', cursive;
+    font-weight:700;
+    font-size:19px;
+    padding:14px 36px;
+    border-radius:12px;
+    border:none;
+    background:var(--herb);
+    color:white;
+    cursor:pointer;
+    box-shadow:0 4px 0 var(--herb-dark), var(--shadow);
+    transition:transform 0.12s ease;
+  }
+  .find-btn:hover:not(:disabled){ transform:translateY(-2px); }
+  .find-btn:active:not(:disabled){ transform:translateY(2px); box-shadow:0 1px 0 var(--herb-dark); }
+  .find-btn:disabled{ opacity:0.6; cursor:default; }
+
+  /* ---------- RESULTS ---------- */
+  .results-wrap{
+    max-width:1040px;
+    margin:52px auto 0;
+    padding:0 24px;
+  }
+
+  .results-title{
+    font-family:'Kalam', cursive;
+    font-size:24px;
+    text-align:center;
+    margin-bottom:8px;
+  }
+  .results-sub{
+    text-align:center;
+    color:var(--ink-soft);
+    font-size:14px;
+    margin-bottom:32px;
+  }
+
+  .status-box{
+    text-align:center;
+    padding:40px 20px;
+    color:var(--ink-soft);
+    font-family:'JetBrains Mono', monospace;
+    font-size:14px;
+  }
+  .status-box.error{ color:var(--tomato); }
+
+  .spinner{
+    width:34px; height:34px;
+    border:4px solid var(--steel);
+    border-top-color:var(--herb);
+    border-radius:50%;
+    margin:0 auto 16px;
+    animation:spin 0.8s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  .card-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill, minmax(260px, 1fr));
+    gap:34px 26px;
+  }
+
+  .recipe-card{
+    background:var(--paper);
+    border-radius:4px;
+    padding:20px 18px 22px;
+    box-shadow:var(--shadow-lift);
+    position:relative;
+    transition:transform 0.18s ease, box-shadow 0.18s ease;
+  }
+  .recipe-card:nth-child(3n+1){ transform:rotate(-1.4deg); }
+  .recipe-card:nth-child(3n+2){ transform:rotate(1deg); }
+  .recipe-card:nth-child(3n){ transform:rotate(-0.6deg); }
+  .recipe-card:hover{ transform:rotate(0deg) translateY(-4px); box-shadow:0 16px 30px rgba(43,43,38,0.22); z-index:2; }
+
+  .pin{
+    position:absolute;
+    top:-11px;
+    left:50%;
+    transform:translateX(-50%);
+    width:22px;
+    height:22px;
+    border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #FF8A75, var(--tomato));
+    box-shadow:0 3px 4px rgba(0,0,0,0.25);
+  }
+
+  .card-emoji{
+    font-size:38px;
+    text-align:center;
+    margin-bottom:6px;
+  }
+  .card-title{
+    font-family:'Kalam', cursive;
+    font-weight:700;
+    font-size:19px;
+    text-align:center;
+    margin:0 0 4px;
+    line-height:1.2;
+  }
+  .card-meta{
+    text-align:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    color:var(--ink-soft);
+    margin-bottom:14px;
+    letter-spacing:0.03em;
+  }
+
+  .match-bar-track{
+    height:6px;
+    background:var(--fridge-panel);
+    border-radius:4px;
+    overflow:hidden;
+    margin-bottom:8px;
+  }
+  .match-bar-fill{
+    height:100%;
+    background:var(--herb);
+    border-radius:4px;
+  }
+  .match-label{
+    font-size:11.5px;
+    color:var(--herb-dark);
+    font-weight:600;
+    text-align:center;
+    margin-bottom:14px;
+    font-family:'JetBrains Mono', monospace;
+  }
+
+  .tag-row{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    justify-content:center;
+    margin-bottom:14px;
+  }
+  .tag{
+    font-size:11px;
+    font-family:'JetBrains Mono', monospace;
+    padding:3px 8px;
+    border-radius:5px;
+  }
+  .tag.have{ background:rgba(76,122,90,0.14); color:var(--herb-dark); }
+  .tag.need{ background:rgba(225,84,63,0.1); color:var(--tomato); }
+
+  .health-badge{
+    display:inline-block;
+    width:fit-content;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    font-weight:600;
+    padding:3px 10px;
+    border-radius:12px;
+    letter-spacing:0.03em;
+  }
+  .badge-row{
+    display:flex;
+    justify-content:center;
+    gap:6px;
+    flex-wrap:wrap;
+    margin-bottom:12px;
+  }
+  .meal-badge{
+    display:inline-block;
+    width:fit-content;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    font-weight:600;
+    padding:3px 10px;
+    border-radius:12px;
+    letter-spacing:0.03em;
+    background:rgba(43,43,38,0.06);
+    color:var(--ink-soft);
+  }
+  .health-badge.light{ background:rgba(76,122,90,0.16); color:var(--herb-dark); }
+  .health-badge.balanced{ background:rgba(242,178,61,0.2); color:var(--yolk-dark); }
+  .health-badge.hearty{ background:rgba(74,92,140,0.14); color:var(--blueberry); }
+  .health-badge.indulgent{ background:rgba(225,84,63,0.14); color:var(--tomato); }
+
+  .nutrition-row{
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    margin-bottom:14px;
+    padding:9px 6px;
+    background:var(--fridge-white);
+    border-radius:8px;
+  }
+  .nutrition-stat{
+    text-align:center;
+  }
+  .nutrition-stat .val{
+    display:block;
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    font-size:13px;
+    color:var(--charcoal);
+  }
+  .nutrition-stat .lab{
+    display:block;
+    font-family:'JetBrains Mono', monospace;
+    font-size:9px;
+    color:var(--steel-dark);
+    text-transform:uppercase;
+    letter-spacing:0.04em;
+    margin-top:2px;
+  }
+
+  .steps-toggle{
+    display:block;
+    width:100%;
+    background:none;
+    border:1.5px dashed var(--steel);
+    border-radius:8px;
+    padding:8px;
+    font-family:'Work Sans', sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    color:var(--ink-soft);
+    cursor:pointer;
+    margin-top:4px;
+  }
+  .steps-toggle:hover{ border-color:var(--herb); color:var(--herb-dark); }
+
+  .steps-list{
+    display:none;
+    margin-top:12px;
+    padding-left:20px;
+    font-size:13px;
+    line-height:1.6;
+    color:var(--charcoal);
+  }
+  .steps-list.open{ display:block; }
+  .steps-list li{ margin-bottom:5px; }
+
+  /* ---------- SURPRISE ME ---------- */
+  .surprise-btn{
+    display:block;
+    margin:12px auto 0;
+    background:none;
+    border:none;
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    color:var(--blueberry);
+    cursor:pointer;
+    text-decoration:underline;
+    text-underline-offset:3px;
+    padding:2px;
+  }
+  .surprise-btn:hover{ color:var(--tomato); }
+
+  /* ---------- PREFS / FILTERS ---------- */
+  .prefs-bar{
+    max-width:640px;
+    margin:16px auto 0;
+    display:flex;
+    flex-wrap:wrap;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
+  }
+  .filter-chips{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    justify-content:center;
+  }
+  .filter-chip{
+    font-family:'Work Sans', sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    padding:7px 13px;
+    border-radius:20px;
+    border:1.5px solid var(--steel);
+    background:var(--paper);
+    color:var(--ink-soft);
+    cursor:pointer;
+    transition:all 0.15s ease;
+  }
+  .filter-chip:hover{ border-color:var(--herb); }
+  .filter-chip.active{
+    background:var(--herb);
+    border-color:var(--herb);
+    color:white;
+  }
+  .cuisine-select{
+    font-family:'Work Sans', sans-serif;
+    font-size:12.5px;
+    font-weight:600;
+    padding:8px 12px;
+    border-radius:20px;
+    border:1.5px solid var(--steel);
+    background:var(--paper);
+    color:var(--ink-soft);
+    cursor:pointer;
+    outline:none;
+  }
+  .cuisine-select:hover{ border-color:var(--herb); }
+
+  .servings-stepper{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:var(--paper);
+    border:1.5px solid var(--steel);
+    border-radius:20px;
+    padding:5px 10px;
+  }
+  .servings-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    font-weight:600;
+    color:var(--ink-soft);
+  }
+  .servings-btn{
+    width:22px; height:22px;
+    border-radius:50%;
+    border:none;
+    background:var(--fridge-panel);
+    color:var(--charcoal);
+    font-size:15px;
+    line-height:1;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:0;
+  }
+  .servings-btn:hover{ background:var(--herb); color:white; }
+  .servings-count{
+    font-family:'JetBrains Mono', monospace;
+    font-weight:700;
+    font-size:13px;
+    min-width:16px;
+    text-align:center;
+  }
+
+  /* ---------- HISTORY ---------- */
+  .history-toggle{
+    position:absolute;
+    top:22px;
+    left:22px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11.5px;
+    font-weight:500;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    background:var(--paper);
+    border:1.5px solid var(--steel);
+    border-radius:20px;
+    padding:6px 12px;
+    color:var(--ink-soft);
+    cursor:pointer;
+    box-shadow:var(--shadow);
+  }
+  .history-toggle:hover{ border-color:var(--herb); color:var(--herb-dark); }
+  .history-count{
+    background:var(--tomato);
+    color:white;
+    font-size:10px;
+    font-weight:700;
+    border-radius:10px;
+    padding:1px 6px;
+  }
+
+  .history-panel{
+    max-width:640px;
+    margin:0 auto;
+    overflow:hidden;
+    max-height:0;
+    transition:max-height 0.3s ease;
+  }
+  .history-panel.open{ max-height:400px; }
+  .history-panel-inner{
+    background:var(--paper);
+    border-radius:14px;
+    box-shadow:var(--shadow-lift);
+    margin:14px 24px 0;
+    padding:16px 18px;
+  }
+  .history-panel-header{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-family:'Kalam', cursive;
+    font-weight:700;
+    font-size:16px;
+    margin-bottom:10px;
+  }
+  .history-clear{
+    background:none;
+    border:none;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--tomato);
+    cursor:pointer;
+    text-decoration:underline;
+  }
+  .history-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    max-height:260px;
+    overflow-y:auto;
+  }
+  .history-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    background:var(--fridge-white);
+    border-radius:10px;
+    padding:10px 12px;
+    cursor:pointer;
+    border:1.5px solid transparent;
+    transition:border-color 0.15s ease;
+  }
+  .history-item:hover{ border-color:var(--herb); }
+  .history-item-text{
+    font-size:13px;
+    color:var(--charcoal);
+    line-height:1.4;
+  }
+  .history-item-ing{ font-weight:600; }
+  .history-item-meta{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    color:var(--steel-dark);
+    white-space:nowrap;
+  }
+  .history-empty{
+    text-align:center;
+    color:var(--steel-dark);
+    font-size:13px;
+    font-style:italic;
+    padding:12px;
+  }
+
+  /* ---------- CARD ENTRANCE ---------- */
+  @keyframes cardIn{
+    from{ opacity:0; transform:translateY(16px) rotate(0deg); }
+  }
+
+  footer{
+    text-align:center;
+    margin-top:60px;
+    font-family:'JetBrains Mono', monospace;
+    font-size:11px;
+    color:var(--steel-dark);
+  }
+
+  /* ---------- FRIDGE DOOR INTRO ---------- */
+  .fridge-doors{
+    position:fixed;
+    inset:0;
+    z-index:1000;
+    display:flex;
+    perspective:1800px;
+  }
+  .fridge-doors.hidden{ display:none; }
+  .fridge-door{
+    width:50%;
+    height:100%;
+    background:linear-gradient(135deg, #EEF0EC 0%, #D3D8D0 55%, #C7CCC6 100%);
+    position:relative;
+    box-shadow:inset 0 0 60px rgba(43,43,38,0.1);
+    transition:transform 1s cubic-bezier(.65,.05,.36,1), opacity 0.9s ease 0.15s;
+  }
+  .fridge-door.left{ transform-origin:left center; border-right:1px solid rgba(43,43,38,0.08); }
+  .fridge-door.right{ transform-origin:right center; border-left:1px solid rgba(43,43,38,0.08); }
+  .door-brand{
+    position:absolute;
+    top:50%;
+    left:0; right:0;
+    transform:translateY(-50%);
+    text-align:center;
+    font-family:'Kalam', cursive;
+    font-weight:700;
+    font-size:22px;
+    color:var(--charcoal);
+    opacity:0.5;
+  }
+  .fridge-door.left .door-brand{ right:-50%; }
+  .fridge-door.right .door-brand{ display:none; }
+  .door-handle{
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    width:12px;
+    height:130px;
+    border-radius:7px;
+    background:linear-gradient(90deg, var(--steel-dark), #F2F3F0 45%, var(--steel-dark));
+    box-shadow:0 2px 8px rgba(0,0,0,0.2);
+  }
+  .fridge-door.left .door-handle{ right:16px; }
+  .fridge-door.right .door-handle{ left:16px; }
+
+  .fridge-doors.open .fridge-door.left{ transform:rotateY(-98deg); opacity:0; }
+  .fridge-doors.open .fridge-door.right{ transform:rotateY(98deg); opacity:0; }
+</style>
+</head>
+<body>
+
+<div class="fridge-doors" id="fridge-doors">
+  <div class="fridge-door left"><div class="door-handle"></div><div class="door-brand">🧊</div></div>
+  <div class="fridge-door right"><div class="door-handle"></div></div>
+</div>
+
+<div class="fridge-app">
+  <div class="door-header">
+    <button class="history-toggle" id="history-toggle">🕘 Recent <span class="history-count" id="history-count" style="display:none;">0</span></button>
+    <div class="handle"></div>
+    <div class="eyebrow">no scrolling through 4,000 recipes</div>
+    <h1>What's in <span>my fridge?</span></h1>
+    <p class="subtitle">Type what you've got. We'll figure out what to cook — no 45-minute scroll through someone's life story first.</p>
+
+    <div class="magnet-bar">
+      <div class="input-row">
+        <input id="ingredient-input" type="text" placeholder="e.g. eggs, onion, cheese, bread…" autocomplete="off">
+        <button class="add-btn" id="add-btn">Add</button>
+      </div>
+      <div class="hint">press enter or comma to add · add a few for better matches</div>
+      <div class="magnets" id="magnets"></div>
+      <button class="surprise-btn" type="button" id="surprise-btn">🎲 Surprise me with a random fridge</button>
+    </div>
+
+    <div class="prefs-bar">
+      <div class="filter-chips" id="filter-chips">
+        <button type="button" class="filter-chip" data-filter="vegetarian">🥕 Vegetarian</button>
+        <button type="button" class="filter-chip" data-filter="vegan">🌱 Vegan</button>
+        <button type="button" class="filter-chip" data-filter="quick">⏱️ Quick (&lt;20 min)</button>
+        <button type="button" class="filter-chip" data-filter="comfort">🍲 Comfort food</button>
+      </div>
+      <select class="cuisine-select" id="cuisine-select">
+        <option value="">Any cuisine</option>
+        <option value="Italian">Italian</option>
+        <option value="Mexican">Mexican</option>
+        <option value="Asian">Asian</option>
+        <option value="Indian">Indian</option>
+        <option value="Mediterranean">Mediterranean</option>
+        <option value="American">American</option>
+      </select>
+      <select class="cuisine-select" id="meal-type-select">
+        <option value="">Any meal</option>
+        <option value="Breakfast">🍳 Breakfast</option>
+        <option value="Lunch">🥪 Lunch</option>
+        <option value="Dinner">🍽️ Dinner</option>
+        <option value="Snack">🍿 Snack</option>
+        <option value="Dessert">🍰 Dessert</option>
+        <option value="Mocktail">🍹 Mocktail</option>
+      </select>
+      <div class="servings-stepper">
+        <span class="servings-label">Serves</span>
+        <button type="button" class="servings-btn" id="servings-minus">−</button>
+        <span class="servings-count" id="servings-count">2</span>
+        <button type="button" class="servings-btn" id="servings-plus">+</button>
+      </div>
+    </div>
+
+    <div class="find-row">
+      <button class="find-btn" id="find-btn" disabled>Find recipes →</button>
+    </div>
+  </div>
+
+  <div class="history-panel" id="history-panel">
+    <div class="history-panel-inner">
+      <div class="history-panel-header">
+        <span>Recent fridge checks</span>
+        <button class="history-clear" id="history-clear">Clear all</button>
+      </div>
+      <div class="history-list" id="history-list"></div>
+    </div>
+  </div>
+
+  <div class="results-wrap" id="results-wrap" style="display:none;">
+    <div class="results-title" id="results-title"></div>
+    <div class="results-sub" id="results-sub"></div>
+    <div id="results-body"></div>
+  </div>
+
+  <footer>fridge check · updated as of today</footer>
+</div>
+
+<script>
+  // ============================================================
+  // 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
+  // ============================================================
+  const GROQ_API_KEY = "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";
+
+  const SYSTEM_PROMPT = `You are a practical home-cooking recipe engine. Given a list of fridge/pantry ingredients a user has on hand, suggest recipes they could realistically cook.
+
+Rules:
+- Suggest exactly 5 recipes, ordered by how well they match the given ingredients (best match first).
+- Favor recipes that use MOST of the listed ingredients as core components.
+- You may assume basic staples are available: salt, pepper, oil, butter, water, flour, sugar, basic spices. Do not count these as "missing" ingredients.
+- "missing" should only list non-trivial ingredients not in the user's list and not a basic staple, max 3 items.
+- matchPercent is an integer 0-100 estimating how well the recipe uses the given ingredients relative to its total non-staple ingredient count.
+- steps: exactly 4 short instructions, each under 12 words, no numbering.
+- emoji: a single emoji representing the dish.
+- time: short string like "20 min".
+- servings: short string like "2 servings".
+- calories: integer, estimated total calories per serving.
+- protein, carbs, fat: integers, estimated grams per serving (nutrition values are always PER SINGLE SERVING, never a total for the whole batch).
+- healthLabel: one of "Light", "Balanced", "Hearty", "Indulgent" — a quick honest read on how health-forward the dish is.
+- mealType: one of "Breakfast", "Lunch", "Dinner", "Snack", "Dessert", "Mocktail" — whichever best fits the dish.
+- If mealType is "Mocktail": steps should describe muddling/mixing/shaking/garnishing instead of cooking, time is typically "5 min" or similar, and servings should read like "1 glass" or "2 glasses" instead of a food serving count.
+- servings should exactly match the requested headcount from the constraints (e.g. "4 servings" if scaled to serve 4, or "4 glasses" if scaled to serve 4 and mealType is Mocktail).
+- Be concise everywhere. Keep the whole response compact — this is critical.
+
+Respond with ONLY valid JSON, no markdown fences, no preamble, matching exactly this shape:
+{
+  "recipes": [
+    {
+      "title": "string",
+      "emoji": "🍳",
+      "time": "20 min",
+      "servings": "2 servings",
+      "matchPercent": 85,
+      "have": ["ingredient", "ingredient"],
+      "missing": ["ingredient"],
+      "steps": ["step one", "step two", "step three", "step four"],
+      "calories": 420,
+      "protein": 24,
+      "carbs": 38,
+      "fat": 16,
+      "healthLabel": "Balanced",
+      "mealType": "Dinner"
+    }
+  ]
+}`;
+
+  const colors = ['c0','c1','c2','c3'];
+  let ingredients = [];
+  const activeFilters = new Set();
+
+  const fridgeDoors = document.getElementById('fridge-doors');
+  const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduceMotion){
+    fridgeDoors.classList.add('hidden');
+  }else{
+    document.body.style.overflow = 'hidden';
+    setTimeout(() => {
+      fridgeDoors.classList.add('open');
+      document.body.style.overflow = '';
+    }, 450);
+    fridgeDoors.addEventListener('transitionend', () => {
+      fridgeDoors.classList.add('hidden');
+    }, { once:true });
+  }
+
+  const input = document.getElementById('ingredient-input');
+  const addBtn = document.getElementById('add-btn');
+  const magnetsEl = document.getElementById('magnets');
+  const findBtn = document.getElementById('find-btn');
+  const resultsWrap = document.getElementById('results-wrap');
+  const resultsTitle = document.getElementById('results-title');
+  const resultsSub = document.getElementById('results-sub');
+  const resultsBody = document.getElementById('results-body');
+  const surpriseBtn = document.getElementById('surprise-btn');
+  const cuisineSelect = document.getElementById('cuisine-select');
+  const mealTypeSelect = document.getElementById('meal-type-select');
+  const servingsCountEl = document.getElementById('servings-count');
+  const servingsMinus = document.getElementById('servings-minus');
+  const servingsPlus = document.getElementById('servings-plus');
+  let servingsCount = 2;
+
+  servingsMinus.addEventListener('click', () => {
+    servingsCount = Math.max(1, servingsCount - 1);
+    servingsCountEl.textContent = servingsCount;
+  });
+  servingsPlus.addEventListener('click', () => {
+    servingsCount = Math.min(12, servingsCount + 1);
+    servingsCountEl.textContent = servingsCount;
+  });
+  const filterChipsEl = document.getElementById('filter-chips');
+  const historyToggle = document.getElementById('history-toggle');
+  const historyPanel = document.getElementById('history-panel');
+  const historyList = document.getElementById('history-list');
+  const historyClear = document.getElementById('history-clear');
+  const historyCount = document.getElementById('history-count');
+
+  const surpriseFridges = [
+    ['eggs','spinach','feta','tomato','pita bread'],
+    ['chicken thighs','garlic','lemon','rice','yogurt'],
+    ['black beans','corn','tortillas','cheddar','lime'],
+    ['pasta','garlic','parmesan','cream','mushrooms'],
+    ['tofu','soy sauce','broccoli','ginger','rice'],
+    ['ground beef','onion','tomato sauce','pasta','mozzarella'],
+    ['potatoes','bacon','cheddar','sour cream','chives'],
+    ['salmon','asparagus','lemon','butter','dill']
+  ];
+
+  filterChipsEl.addEventListener('click', (e) => {
+    const chip = e.target.closest('.filter-chip');
+    if(!chip) return;
+    const key = chip.dataset.filter;
+    if(activeFilters.has(key)){
+      activeFilters.delete(key);
+      chip.classList.remove('active');
+    }else{
+      activeFilters.add(key);
+      chip.classList.add('active');
+    }
+  });
+
+  surpriseBtn.addEventListener('click', () => {
+    const pick = surpriseFridges[Math.floor(Math.random() * surpriseFridges.length)];
+    ingredients = [...pick];
+    renderMagnets();
+    updateFindBtn();
+  });
+
+  const magnetPositions = {};
+
+  function assignPosition(ing, i){
+    if(magnetPositions[ing]) return magnetPositions[ing];
+    const cols = 4;
+    const col = i % cols;
+    const row = Math.floor(i / cols);
+    const jitterX = (Math.random() * 10) - 5;
+    const jitterY = (Math.random() * 10) - 5;
+    const pos = {
+      left: col * 24 + 3 + jitterX,   // percent
+      top: row * 62 + 8 + jitterY,     // px
+      rot: (Math.random() * 10) - 5
+    };
+    magnetPositions[ing] = pos;
+    return pos;
+  }
+
+  function makeDraggable(el, ing){
+    let dragging = false, startX, startY, origLeftPx, origTop;
+
+    el.addEventListener('pointerdown', (e) => {
+      if(e.target.closest('button')) return;
+      dragging = true;
+      el.setPointerCapture(e.pointerId);
+      el.classList.add('dragging');
+      const rect = el.getBoundingClientRect();
+      const parentRect = magnetsEl.getBoundingClientRect();
+      origLeftPx = rect.left - parentRect.left;
+      origTop = rect.top - parentRect.top;
+      startX = e.clientX;
+      startY = e.clientY;
+    });
+
+    el.addEventListener('pointermove', (e) => {
+      if(!dragging) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      const parentW = magnetsEl.clientWidth;
+      let newLeftPx = Math.max(0, Math.min(parentW - el.offsetWidth, origLeftPx + dx));
+      let newTop = Math.max(0, Math.min(Math.max(magnetsEl.clientHeight, 150) - el.offsetHeight, origTop + dy));
+      el.style.left = (newLeftPx / parentW * 100) + '%';
+      el.style.top = newTop + 'px';
+    });
+
+    const stopDrag = () => {
+      if(!dragging) return;
+      dragging = false;
+      el.classList.remove('dragging');
+      const parentW = magnetsEl.clientWidth || 1;
+      magnetPositions[ing] = {
+        left: parseFloat(el.style.left) || 0,
+        top: parseFloat(el.style.top) || 0,
+        rot: magnetPositions[ing] ? magnetPositions[ing].rot : 0
+      };
+    };
+    el.addEventListener('pointerup', stopDrag);
+    el.addEventListener('pointercancel', stopDrag);
+  }
+
+  function renderMagnets(){
+    magnetsEl.innerHTML = '';
+    magnetsEl.classList.toggle('has-items', ingredients.length > 0);
+    if(ingredients.length === 0){
+      magnetsEl.innerHTML = '<div class="empty-hint">your fridge is looking empty… add something above, then drag the magnets around</div>';
+      return;
+    }
+    ingredients.forEach((ing, i) => {
+      const pos = assignPosition(ing, i);
+      const chip = document.createElement('span');
+      chip.className = 'magnet ' + colors[i % colors.length];
+      chip.style.left = pos.left + '%';
+      chip.style.top = pos.top + 'px';
+      chip.style.transform = `rotate(${pos.rot}deg)`;
+      chip.innerHTML = ing.charAt(0).toUpperCase() + ing.slice(1) +
+        ' <button aria-label="remove">✕</button>';
+      chip.querySelector('button').addEventListener('click', (e) => {
+        e.stopPropagation();
+        delete magnetPositions[ing];
+        ingredients.splice(i, 1);
+        renderMagnets();
+        updateFindBtn();
+      });
+      makeDraggable(chip, ing);
+      magnetsEl.appendChild(chip);
+    });
+    const rows = Math.ceil(ingredients.length / 4);
+    magnetsEl.style.minHeight = Math.max(150, rows * 62 + 40) + 'px';
+  }
+
+  function updateFindBtn(){
+    findBtn.disabled = ingredients.length === 0 && input.value.trim().length === 0;
+  }
+
+  function addIngredient(raw){
+    raw.split(',').forEach(part => {
+      const v = part.trim().toLowerCase();
+      if(v && !ingredients.includes(v)){
+        ingredients.push(v);
+      }
+    });
+    renderMagnets();
+    updateFindBtn();
+  }
+
+  input.addEventListener('keydown', (e) => {
+    if(e.key === 'Enter' || e.key === ','){
+      e.preventDefault();
+      if(input.value.trim()){
+        addIngredient(input.value);
+        input.value = '';
+      }
+    }
+  });
+  input.addEventListener('input', updateFindBtn);
+  addBtn.addEventListener('click', () => {
+    if(input.value.trim()){
+      addIngredient(input.value);
+      input.value = '';
+      input.focus();
+    }
+  });
+
+  renderMagnets();
+  updateFindBtn();
+
+  const loadingLines = [
+    'Peering into the crisper drawer…',
+    'Sniffing the milk (looks fine)…',
+    'Cross-referencing with the internet\'s recipes…',
+    'Weighing eggs vs. onions vs. destiny…'
+  ];
+
+  async function findRecipes(){
+    if(input.value.trim()){
+      addIngredient(input.value);
+      input.value = '';
+    }
+    if(ingredients.length === 0){
+      updateFindBtn();
+      return;
+    }
+    if(!GROQ_API_KEY || GROQ_API_KEY === "PASTE_YOUR_GROQ_API_KEY_HERE"){
+      resultsWrap.style.display = 'block';
+      resultsTitle.textContent = '';
+      resultsSub.textContent = '';
+      resultsBody.innerHTML = '<div class="status-box error">No Groq API key found. Open this file, find GROQ_API_KEY near the top of the &lt;script&gt; tag, and paste your key from console.groq.com/keys in place of the placeholder text.</div>';
+      resultsWrap.scrollIntoView({ behavior:'smooth', block:'start' });
+      return;
+    }
+    findBtn.disabled = true;
+    findBtn.textContent = 'Thinking…';
+    resultsWrap.style.display = 'block';
+    resultsTitle.textContent = '';
+    resultsSub.textContent = '';
+    resultsBody.innerHTML = `
+      <div class="status-box">
+        <div class="spinner"></div>
+        <div id="loading-line">${loadingLines[0]}</div>
+      </div>`;
+    let li = 0;
+    const loadingInterval = setInterval(() => {
+      li = (li + 1) % loadingLines.length;
+      const el = document.getElementById('loading-line');
+      if(el) el.textContent = loadingLines[li];
+    }, 1400);
+
+    resultsWrap.scrollIntoView({ behavior:'smooth', block:'start' });
+
+    const userPrompt = `Ingredients I have: ${ingredients.join(', ')}${buildConstraintsText()}`;
+
+    try{
+      const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + GROQ_API_KEY
+        },
+        body: JSON.stringify({
+          model: "openai/gpt-oss-120b",
+          temperature: 0.7,
+          max_completion_tokens: 3200,
+          response_format: { type: "json_object" },
+          messages: [
+            { role: "system", content: SYSTEM_PROMPT },
+            { role: "user", content: userPrompt }
+          ]
+        })
+      });
+
+      if(!response.ok){
+        const errBody = await response.json().catch(() => ({}));
+        throw new Error((errBody.error && errBody.error.message) || ('Request failed: ' + response.status));
+      }
+
+      const data = await response.json();
+      const rawText = data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+      if(!rawText){ throw new Error('No response text'); }
+
+      let clean = rawText.trim().replace(/^```json\s*/i, '').replace(/^```\s*/,'').replace(/```\s*$/,'');
+      let parsed;
+      try{
+        parsed = JSON.parse(clean);
+      }catch(parseErr){
+        // Response may have been cut off mid-JSON. Try to salvage complete recipe objects.
+        const arrayStart = clean.indexOf('[');
+        if(arrayStart === -1) throw parseErr;
+        let depth = 0, lastGoodEnd = -1, inString = false, escapeNext = false;
+        for(let i = arrayStart; i < clean.length; i++){
+          const ch = clean[i];
+          if(escapeNext){ escapeNext = false; continue; }
+          if(ch === '\\'){ escapeNext = true; continue; }
+          if(ch === '"'){ inString = !inString; continue; }
+          if(inString) continue;
+          if(ch === '{') depth++;
+          if(ch === '}'){ depth--; if(depth === 0) lastGoodEnd = i; }
+        }
+        if(lastGoodEnd === -1) throw parseErr;
+        const salvaged = clean.slice(arrayStart, lastGoodEnd + 1) + ']';
+        parsed = { recipes: JSON.parse(salvaged) };
+      }
+      const recipes = parsed.recipes || [];
+
+      clearInterval(loadingInterval);
+
+      if(recipes.length === 0){
+        resultsBody.innerHTML = '<div class="status-box error">Couldn\'t find anything solid — try adding a couple more ingredients.</div>';
+        resultsTitle.textContent = '';
+        return;
+      }
+
+      resultsTitle.textContent = `${recipes.length} things you could make right now`;
+      resultsSub.textContent = `Sorted by how much of your fridge each one uses`;
+
+      renderRecipeCards(recipes);
+      saveHistoryEntry(ingredients, activeFilters, cuisineSelect.value, recipes, mealTypeSelect.value, servingsCount);
+
+    }catch(err){
+      clearInterval(loadingInterval);
+      console.error(err);
+      resultsTitle.textContent = '';
+      resultsSub.textContent = '';
+      resultsBody.innerHTML = `<div class="status-box error">Something went sideways in the kitchen: ${escapeHtml(err.message)}. Try again in a moment.</div>`;
+    }finally{
+      findBtn.disabled = ingredients.length === 0;
+      findBtn.textContent = 'Find recipes →';
+    }
+  }
+
+  function buildConstraintsText(){
+    const parts = [];
+    if(activeFilters.has('vegetarian')) parts.push('vegetarian only');
+    if(activeFilters.has('vegan')) parts.push('vegan only');
+    if(activeFilters.has('quick')) parts.push('ready in under 20 minutes');
+    if(activeFilters.has('comfort')) parts.push('comfort-food style');
+    if(cuisineSelect.value) parts.push(cuisineSelect.value + ' cuisine');
+    if(mealTypeSelect.value) parts.push(mealTypeSelect.value.toLowerCase() + ' dishes only');
+    parts.push(`scaled to serve exactly ${servingsCount} ${servingsCount === 1 ? 'person' : 'people'}`);
+    return parts.length ? `. Constraints: ${parts.join(', ')}.` : '';
+  }
+
+  function renderRecipeCards(recipes){
+    resultsBody.innerHTML = '<div class="card-grid"></div>';
+    const grid = resultsBody.querySelector('.card-grid');
+
+    recipes.forEach((r, idx) => {
+      const card = document.createElement('div');
+      card.className = 'recipe-card';
+      card.style.animation = `cardIn 0.4s ease both`;
+      card.style.animationDelay = (idx * 0.08) + 's';
+
+      const haveTags = (r.have || []).map(h => `<span class="tag have">✓ ${escapeHtml(h)}</span>`).join('');
+      const needTags = (r.missing || []).map(m => `<span class="tag need">+ ${escapeHtml(m)}</span>`).join('');
+      const stepsHtml = (r.steps || []).map(s => `<li>${escapeHtml(s)}</li>`).join('');
+      const pct = Math.max(0, Math.min(100, r.matchPercent || 0));
+      const healthKey = (r.healthLabel || 'Balanced').toLowerCase();
+      const healthIcon = { light:'🥦', balanced:'⚖️', hearty:'🍲', indulgent:'🍔' }[healthKey] || '⚖️';
+      const mealIcon = { breakfast:'🍳', lunch:'🥪', dinner:'🍽️', snack:'🍿', dessert:'🍰', mocktail:'🍹' }[(r.mealType || '').toLowerCase()] || '';
+
+      card.innerHTML = `
+        <div class="pin"></div>
+        <div class="card-emoji">${r.emoji || '🍽️'}</div>
+        <div class="card-title">${escapeHtml(r.title || 'Recipe')}</div>
+        <div class="card-meta">${escapeHtml(r.time || '')} · ${escapeHtml(r.servings || '')}</div>
+        <div class="badge-row">
+          <span class="health-badge ${healthKey}">${healthIcon} ${escapeHtml(r.healthLabel || 'Balanced')}</span>
+          ${r.mealType ? `<span class="meal-badge">${mealIcon} ${escapeHtml(r.mealType)}</span>` : ''}
+        </div>
+        <div class="match-bar-track"><div class="match-bar-fill" style="width:${pct}%"></div></div>
+        <div class="match-label">${pct}% fridge match</div>
+        <div class="nutrition-row">
+          <div class="nutrition-stat"><span class="val">${r.calories ?? '–'}</span><span class="lab">kcal</span></div>
+          <div class="nutrition-stat"><span class="val">${r.protein ?? '–'}g</span><span class="lab">protein</span></div>
+          <div class="nutrition-stat"><span class="val">${r.carbs ?? '–'}g</span><span class="lab">carbs</span></div>
+          <div class="nutrition-stat"><span class="val">${r.fat ?? '–'}g</span><span class="lab">fat</span></div>
+        </div>
+        <div class="tag-row">${haveTags}${needTags}</div>
+        <button class="steps-toggle">Show steps ▾</button>
+        <ul class="steps-list">${stepsHtml}</ul>
+      `;
+
+      const toggle = card.querySelector('.steps-toggle');
+      const list = card.querySelector('.steps-list');
+      toggle.addEventListener('click', () => {
+        list.classList.toggle('open');
+        toggle.textContent = list.classList.contains('open') ? 'Hide steps ▴' : 'Show steps ▾';
+      });
+
+      grid.appendChild(card);
+    });
+  }
+
+  function escapeHtml(str){
+    const div = document.createElement('div');
+    div.textContent = str == null ? '' : String(str);
+    return div.innerHTML;
+  }
+
+  /* ---------- HISTORY (persistent storage) ---------- */
+  const HISTORY_KEY = 'fridge-history';
+  const HISTORY_MAX = 8;
+
+  async function loadHistory(){
+    try{
+      const raw = localStorage.getItem(HISTORY_KEY);
+      return raw ? JSON.parse(raw) : [];
+    }catch(e){
+      return [];
+    }
+  }
+
+  async function saveHistoryEntry(ings, filtersSet, cuisine, recipes, mealType, servings){
+    try{
+      const list = await loadHistory();
+      const entry = {
+        id: Date.now(),
+        ts: Date.now(),
+        ingredients: [...ings],
+        filters: [...filtersSet],
+        cuisine: cuisine || '',
+        mealType: mealType || '',
+        servings: servings || 2,
+        recipes: recipes
+      };
+      list.unshift(entry);
+      const trimmed = list.slice(0, HISTORY_MAX);
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(trimmed));
+      refreshHistoryBadge(trimmed.length);
+    }catch(e){
+      console.error('Could not save history', e);
+    }
+  }
+
+  function timeAgo(ts){
+    const diff = Math.max(0, Date.now() - ts);
+    const mins = Math.floor(diff / 60000);
+    if(mins < 1) return 'just now';
+    if(mins < 60) return mins + 'm ago';
+    const hrs = Math.floor(mins / 60);
+    if(hrs < 24) return hrs + 'h ago';
+    return Math.floor(hrs / 24) + 'd ago';
+  }
+
+  async function renderHistoryPanel(){
+    const list = await loadHistory();
+    refreshHistoryBadge(list.length);
+    if(list.length === 0){
+      historyList.innerHTML = '<div class="history-empty">No fridge checks yet — run a search and it\'ll show up here.</div>';
+      return;
+    }
+    historyList.innerHTML = '';
+    list.forEach(entry => {
+      const row = document.createElement('div');
+      row.className = 'history-item';
+      const ingText = entry.ingredients.slice(0, 4).join(', ') + (entry.ingredients.length > 4 ? '…' : '');
+      row.innerHTML = `
+        <div class="history-item-text"><span class="history-item-ing">${escapeHtml(ingText)}</span></div>
+        <div class="history-item-meta">${timeAgo(entry.ts)}</div>
+      `;
+      row.addEventListener('click', () => {
+        ingredients = [...entry.ingredients];
+        renderMagnets();
+        updateFindBtn();
+        activeFilters.clear();
+        document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+        (entry.filters || []).forEach(f => {
+          activeFilters.add(f);
+          const el = document.querySelector(`.filter-chip[data-filter="${f}"]`);
+          if(el) el.classList.add('active');
+        });
+        cuisineSelect.value = entry.cuisine || '';
+        mealTypeSelect.value = entry.mealType || '';
+        servingsCount = entry.servings || 2;
+        servingsCountEl.textContent = servingsCount;
+        resultsWrap.style.display = 'block';
+        resultsTitle.textContent = `${entry.recipes.length} things you could make right now`;
+        resultsSub.textContent = `From a previous fridge check · ${timeAgo(entry.ts)}`;
+        renderRecipeCards(entry.recipes);
+        historyPanel.classList.remove('open');
+        resultsWrap.scrollIntoView({ behavior:'smooth', block:'start' });
+      });
+      historyList.appendChild(row);
+    });
+  }
+
+  function refreshHistoryBadge(count){
+    if(count > 0){
+      historyCount.style.display = 'inline-block';
+      historyCount.textContent = count;
+    }else{
+      historyCount.style.display = 'none';
+    }
+  }
+
+  historyToggle.addEventListener('click', async () => {
+    const willOpen = !historyPanel.classList.contains('open');
+    if(willOpen) await renderHistoryPanel();
+    historyPanel.classList.toggle('open', willOpen);
+  });
+
+  historyClear.addEventListener('click', async () => {
+    try{
+      localStorage.removeItem(HISTORY_KEY);
+    }catch(e){ /* nothing to clear */ }
+    await renderHistoryPanel();
+  });
+
+  (async () => {
+    const list = await loadHistory();
+    refreshHistoryBadge(list.length);
+  })();
+
+  findBtn.addEventListener('click', findRecipes);
+</script>
+
+</body>
+</html>
